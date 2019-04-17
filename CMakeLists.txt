@@ -5,10 +5,10 @@ project(libseek-thermal)
 set (CMAKE_CXX_STANDARD 11)
 set (CMAKE_CXX_STANDARD_REQUIRED True)
 
-find_package(catkin REQUIRED COMPONENTS image_transport camera_info_manager dynamic_reconfigure )
+find_package(catkin REQUIRED COMPONENTS cv_bridge image_transport camera_info_manager dynamic_reconfigure )
 
 catkin_package(
-    DEPENDS image_transport camera_info_manager dynamic_reconfigure
+    DEPENDS cv_bridge image_transport camera_info_manager dynamic_reconfigure
     #CATKIN_DEPENDS
     #INCLUDE_DIRS
     #LIBRARIES
@@ -51,3 +51,7 @@ target_link_libraries (seek
     ${OpenCV_LIBS}
     -lusb-1.0
 )
+
+add_executable(seek_thermal_node src/seek_thermal_node.cpp src/seek_thermal_ros.cpp)
+target_link_libraries(seek_thermal_node seek ${catkin_LIBRARIES})
+#add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} )
