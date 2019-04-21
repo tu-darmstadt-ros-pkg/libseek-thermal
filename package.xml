@@ -14,18 +14,10 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <!-- Dependencies needed to compile this package. -->
-  <depend>cv_bridge</depend>
-  <depend>image_transport</depend>
-  <depend>dynamic_reconfigure</depend>
   <depend>camera_info_manager</depend>
-
-  <!-- Dependencies needed after this package is compiled. -->
-
-
-  <!-- Dependencies needed only for running tests. -->
-  <!-- <test_depend>image_transport</test_depend> -->
-  <!-- <test_depend>camera_info_manager</test_depend> -->
-  <!-- <test_depend>thermaleye_msgs</test_depend> -->
-  <!-- <test_depend>dynamic_reconfigure</test_depend> -->
+  <depend>cv_bridge</depend>
+  <depend>diagnostic_updater</depend>
+  <depend>dynamic_reconfigure</depend>
+  <depend>image_transport</depend>
 
 </package>

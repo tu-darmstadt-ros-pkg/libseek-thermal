@@ -49,6 +49,19 @@ SeekThermalRos::SeekThermalRos(ros::NodeHandle &nh, ros::NodeHandle &pnh)
 
   cv_image_.encoding = sensor_msgs::image_encodings::MONO16;
   cv_image_.header.frame_id = "todo_fill_me_via_param";
+
+  //Diagnostics
+  pnh.param<double>("diagnostics_freq_min", diagnostics_freq_min_, 7.0);
+  pnh.param<double>("diagnostics_freq_max", diagnostics_freq_max_, 10.0);
+
+  diagnostic_updater_.reset(new diagnostic_updater::Updater);
+  //@TODO: Proper camera name
+  diagnostic_updater_->setHardwareID(pnh.getNamespace());
+
+  img_pub_freq_.reset(new diagnostic_updater::HeaderlessTopicDiagnostic("Image Pub Frequency",
+           *diagnostic_updater_,
+           diagnostic_updater::FrequencyStatusParam(&diagnostics_freq_min_, &diagnostics_freq_max_, 0.0)));
+
 }
 
 void SeekThermalRos::frameGrabTimerCallback(const ros::TimerEvent& event)
@@ -62,6 +75,9 @@ void SeekThermalRos::frameGrabTimerCallback(const ros::TimerEvent& event)
 
   // Creates a shared ptr copy of image and publishes
   image_pub_.publish(cv_image_.toImageMsg());
+
+  img_pub_freq_->tick();
+  diagnostic_updater_->update();
 }
 
 

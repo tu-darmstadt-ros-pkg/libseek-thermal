@@ -30,13 +30,17 @@
 #ifndef SEEK_THERMAL_ROS_H_____
 #define SEEK_THERMAL_ROS_H_____
 
+#include "seek.h"
 
 #include <ros/ros.h>
 #include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.h>
 #include <image_transport/publisher.h>
 
-#include "seek.h"
+#include <diagnostic_updater/diagnostic_updater.h>
+#include <diagnostic_updater/publisher.h>
+
+
 
 class SeekThermalRos
 {
@@ -55,6 +59,13 @@ protected:
   boost::shared_ptr<LibSeek::SeekThermal> seek_;
 
   ros::Timer frame_grab_timer_;
+
+  // Diagnostics
+  boost::shared_ptr<diagnostic_updater::Updater> diagnostic_updater_;
+  boost::shared_ptr<diagnostic_updater::HeaderlessTopicDiagnostic> img_pub_freq_;
+  double diagnostics_freq_min_;
+  double diagnostics_freq_max_;
+
 
 };
 

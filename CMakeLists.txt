@@ -5,10 +5,10 @@ project(libseek-thermal)
 set (CMAKE_CXX_STANDARD 11)
 set (CMAKE_CXX_STANDARD_REQUIRED True)
 
-find_package(catkin REQUIRED COMPONENTS cv_bridge image_transport camera_info_manager dynamic_reconfigure )
+find_package(catkin REQUIRED COMPONENTS camera_info_manager cv_bridge diagnostic_updater dynamic_reconfigure image_transport)
 
 catkin_package(
-    DEPENDS cv_bridge image_transport camera_info_manager dynamic_reconfigure
+    DEPENDS camera_info_manager cv_bridge diagnostic_updater dynamic_reconfigure image_transport
     #CATKIN_DEPENDS
     #INCLUDE_DIRS
     #LIBRARIES
