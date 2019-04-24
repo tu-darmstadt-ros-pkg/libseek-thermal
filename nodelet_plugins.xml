@@ -1,0 +1,11 @@
+<library path="lib/libseek_thermal_nodelet">
+
+  <class name="seek_thermal_ros/SeekThermalNodelet"
+         type="seek_thermal_ros::SeekThermalNodelet"
+	 base_class_type="nodelet::Nodelet">
+    <description>
+      Seek thermal ROS driver nodelet
+    </description>
+  </class>
+
+</library>

@@ -19,5 +19,10 @@
   <depend>diagnostic_updater</depend>
   <depend>dynamic_reconfigure</depend>
   <depend>image_transport</depend>
+  <depend>nodelet</depend>
+  
+  <export>
+    <nodelet plugin="${prefix}/nodelet_plugins.xml" />
+  </export>
 
 </package>
