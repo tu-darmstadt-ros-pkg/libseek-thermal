@@ -65,6 +65,7 @@ protected:
   boost::shared_ptr<diagnostic_updater::HeaderlessTopicDiagnostic> img_pub_freq_;
   double diagnostics_freq_min_;
   double diagnostics_freq_max_;
+  int rotate90_;
 
 
 };

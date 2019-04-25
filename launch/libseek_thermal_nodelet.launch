@@ -2,17 +2,18 @@
 
 <launch>
   
-  <arg name="nodelet_manager_name" default="seek_nodelet_manager" />
+  <arg name="nodelet_manager_name" default="arm_thermal_cam_nodelet_manager" />
 
   <arg name="thermal_camera_ns" default="arm_thermal_cam" /> 
   <arg name="thermal_image_topic" default="image_raw" />
-  
+
   
   
   <node pkg="nodelet" type="nodelet" name="$(arg nodelet_manager_name)" args="manager" output="screen" respawn="true"/>
 
   <node pkg="nodelet" type="nodelet" name="seek_thermal_driver"
         args="load seek_thermal_ros/SeekThermalNodelet $(arg nodelet_manager_name)" output="screen" respawn="true">
+	<param name="rotate90" type="int" value="1"/>
 	<remap from="camera/image" to="/$(arg thermal_camera_ns)/$(arg thermal_image_topic)"/>
   </node>
 

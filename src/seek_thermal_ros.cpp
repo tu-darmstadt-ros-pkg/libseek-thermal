@@ -30,6 +30,9 @@
 
 SeekThermalRos::SeekThermalRos(ros::NodeHandle &nh, ros::NodeHandle &pnh)
 {
+
+
+  pnh.getParam("rotate90", rotate90_);
   image_transport::ImageTransport it(nh);
 
   image_pub_ = it.advertise("camera/image", 1);
@@ -68,7 +71,12 @@ void SeekThermalRos::frameGrabTimerCallback(const ros::TimerEvent& event)
 {
   // Read directly into cv::Mat in cv_image
   seek_->read(cv_image_.image);
-
+  if (rotate90_ == 1)
+    cv::rotate(cv_image_.image, cv_image_.image,0);
+  else if (rotate90_ == 2)
+      cv::rotate(cv_image_.image, cv_image_.image,1);
+  else if (rotate90_ == 3)
+      cv::rotate(cv_image_.image, cv_image_.image,2);
   ros::Time retrieve_time = ros::Time::now();
 
   cv_image_.header.stamp = retrieve_time;
