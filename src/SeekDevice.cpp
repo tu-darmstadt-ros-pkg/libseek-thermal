@@ -11,10 +11,11 @@
 
 using namespace LibSeek;
 
-SeekDevice::SeekDevice(int vendor_id, int product_id, int timeout) :
+SeekDevice::SeekDevice(int vendor_id, int product_id, int device_index, int timeout) :
     m_vendor_id(vendor_id),
     m_product_id(product_id),
     m_timeout(timeout),
+    m_device_index(device_index),
     m_is_opened(false),
     m_ctx(nullptr),
     m_handle(nullptr) { }
@@ -136,6 +137,7 @@ bool SeekDevice::open_device()
     int res;
     int idx_dev;
     int cnt;
+    int count = m_device_index;
     bool found = false;
     struct libusb_device **devs;
     struct libusb_device_descriptor desc;
@@ -159,8 +161,11 @@ bool SeekDevice::open_device()
         debug("vendor: %x  product: %x\n", desc.idVendor, desc.idProduct);
 
         if (desc.idVendor == m_vendor_id && desc.idProduct == m_product_id) {
-            found = true;
-            break;
+            if (count==0){
+                found = true;
+                break;
+            }
+            count --;
         }
     }
 

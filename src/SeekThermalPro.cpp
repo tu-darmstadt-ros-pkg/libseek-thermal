@@ -14,7 +14,7 @@ SeekThermalPro::SeekThermalPro() :
 { }
 
 SeekThermalPro::SeekThermalPro(std::string ffc_filename) :
-    SeekCam(0x289d, 0x0011, m_buffer,
+    SeekCam(0x289d, 0x0011, 0, m_buffer,
             THERMAL_PRO_RAW_HEIGHT, THERMAL_PRO_RAW_WIDTH,
             cv::Rect(1, 4, THERMAL_PRO_WIDTH, THERMAL_PRO_HEIGHT), ffc_filename)
 { }

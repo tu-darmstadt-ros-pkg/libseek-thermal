@@ -33,6 +33,7 @@ SeekThermalRos::SeekThermalRos(ros::NodeHandle &nh, ros::NodeHandle &pnh)
 
 
   pnh.param("rotate90", rotate90_, 0);
+  pnh.param("device_index", device_index_, 0);
   pnh.param("frame_id", frame_id_, std::string("seek_thermal_frame"));
   pnh.param("camera_info_url", camera_info_url_, std::string());
   pnh.param("camera_name", cam_name_, std::string("seek_thermal"));
@@ -47,7 +48,7 @@ SeekThermalRos::SeekThermalRos(ros::NodeHandle &nh, ros::NodeHandle &pnh)
   image_pub_ = it.advertise("camera/image", 1);  
   cam_info_pub_ = nh.advertise<sensor_msgs::CameraInfo>("camera/camera_info",5);
 
-  seek_ = boost::make_shared<LibSeek::SeekThermal>();
+  seek_ = boost::make_shared<LibSeek::SeekThermal>(device_index_);
 
   if (!seek_->open()){
     ROS_ERROR("Failed to open device!");

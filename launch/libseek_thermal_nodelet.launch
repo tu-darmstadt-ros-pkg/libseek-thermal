@@ -14,6 +14,7 @@
   <node pkg="nodelet" type="nodelet" name="seek_thermal_driver"
         args="load seek_thermal_ros/SeekThermalNodelet $(arg nodelet_manager_name)" output="screen" respawn="true">
 	<param name="rotate90" type="int" value="1"/>
+	<param name="device_index" type="int" value="0"/>
 	<remap from="camera/image" to="/$(arg thermal_camera_ns)/$(arg thermal_image_topic)"/>
   </node>
 

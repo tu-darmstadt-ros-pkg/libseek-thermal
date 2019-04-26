@@ -66,7 +66,7 @@ public:
      *  product_id: usb product id
      *  timeout:    timeout usb requests
      */
-    SeekDevice(int vendor_id, int product_id, int timeout=10000);
+    SeekDevice(int vendor_id, int product_id, int device_index=0, int timeout=10000);
 
     ~SeekDevice();
 
@@ -111,6 +111,7 @@ public:
     bool fetch_frame(uint16_t* buffer, std::size_t size);
 
 private:
+    int m_device_index;
     int m_vendor_id;
     int m_product_id;
     int m_timeout;

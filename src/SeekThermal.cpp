@@ -9,12 +9,12 @@
 
 using namespace LibSeek;
 
-SeekThermal::SeekThermal() :
-    SeekThermal(std::string())
+SeekThermal::SeekThermal(int device_index) :
+    SeekThermal(std::string(), device_index)
 { }
 
-SeekThermal::SeekThermal(std::string ffc_filename) :
-    SeekCam(0x289d, 0x0010, m_buffer,
+SeekThermal::SeekThermal(std::string ffc_filename, int device_index) :
+    SeekCam(0x289d, 0x0010, device_index, m_buffer,
             THERMAL_RAW_HEIGHT, THERMAL_RAW_WIDTH,
             cv::Rect(0, 1, THERMAL_WIDTH, THERMAL_HEIGHT), ffc_filename)
 { }

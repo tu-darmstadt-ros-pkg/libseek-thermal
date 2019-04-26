@@ -20,7 +20,7 @@ namespace LibSeek {
 class SeekThermal: public SeekCam
 {
 public:
-    SeekThermal();
+    SeekThermal(int device_index);
     /*
      *  ffc_filename:
      *      Filename for additional flat field calibration and corner
@@ -28,7 +28,7 @@ public:
      *      be subtracted from each retrieved frame. If not, no additional
      *      flat field calibration will be applied
      */
-    SeekThermal(std::string ffc_filename);
+    SeekThermal(std::string ffc_filename, int device_index);
 
     virtual bool init_cam();
     virtual int frame_id();

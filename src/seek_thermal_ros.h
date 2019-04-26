@@ -73,6 +73,7 @@ protected:
   
   // Params
   int rotate90_;
+  int device_index_;
   std::string frame_id_;
   std::string camera_info_url_;
   std::string cam_name_;
