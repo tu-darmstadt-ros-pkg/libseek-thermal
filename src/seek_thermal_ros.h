@@ -37,6 +37,8 @@
 #include <image_transport/image_transport.h>
 #include <image_transport/publisher.h>
 
+#include <camera_info_manager/camera_info_manager.h>
+
 #include <diagnostic_updater/diagnostic_updater.h>
 #include <diagnostic_updater/publisher.h>
 
@@ -53,10 +55,13 @@ public:
 protected:
 
   image_transport::Publisher image_pub_;
+  ros::Publisher cam_info_pub_;
 
   cv_bridge::CvImage cv_image_;
+  sensor_msgs::CameraInfo camera_info_;
 
   boost::shared_ptr<LibSeek::SeekThermal> seek_;
+  boost::shared_ptr <camera_info_manager::CameraInfoManager> camera_info_manager_;
 
   ros::Timer frame_grab_timer_;
 
@@ -65,7 +70,12 @@ protected:
   boost::shared_ptr<diagnostic_updater::HeaderlessTopicDiagnostic> img_pub_freq_;
   double diagnostics_freq_min_;
   double diagnostics_freq_max_;
+  
+  // Params
   int rotate90_;
+  std::string frame_id_;
+  std::string camera_info_url_;
+  std::string cam_name_;
 
 
 };

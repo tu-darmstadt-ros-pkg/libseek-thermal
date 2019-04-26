@@ -32,10 +32,20 @@ SeekThermalRos::SeekThermalRos(ros::NodeHandle &nh, ros::NodeHandle &pnh)
 {
 
 
-  pnh.getParam("rotate90", rotate90_);
+  pnh.param("rotate90", rotate90_, 0);
+  pnh.param("frame_id", frame_id_, std::string("seek_thermal_frame"));
+  pnh.param("camera_info_url", camera_info_url_, std::string());
+  pnh.param("camera_name", cam_name_, std::string("seek_thermal"));
+  
+  camera_info_manager_ = boost::make_shared<camera_info_manager::CameraInfoManager>(nh, cam_name_, camera_info_url_);
+  
+  camera_info_ = camera_info_manager_->getCameraInfo();
+  camera_info_.header.frame_id = frame_id_;
+  
   image_transport::ImageTransport it(nh);
 
-  image_pub_ = it.advertise("camera/image", 1);
+  image_pub_ = it.advertise("camera/image", 1);  
+  cam_info_pub_ = nh.advertise<sensor_msgs::CameraInfo>("camera/camera_info",5);
 
   seek_ = boost::make_shared<LibSeek::SeekThermal>();
 
@@ -51,7 +61,7 @@ SeekThermalRos::SeekThermalRos(ros::NodeHandle &nh, ros::NodeHandle &pnh)
   //cam_still_pub_ = it.advertiseCamera("camera/still/image", 1);
 
   cv_image_.encoding = sensor_msgs::image_encodings::MONO16;
-  cv_image_.header.frame_id = "todo_fill_me_via_param";
+  cv_image_.header.frame_id = frame_id_;
 
   //Diagnostics
   pnh.param<double>("diagnostics_freq_min", diagnostics_freq_min_, 7.0);
@@ -71,12 +81,14 @@ void SeekThermalRos::frameGrabTimerCallback(const ros::TimerEvent& event)
 {
   // Read directly into cv::Mat in cv_image
   seek_->read(cv_image_.image);
+  
   if (rotate90_ == 1)
     cv::rotate(cv_image_.image, cv_image_.image,0);
   else if (rotate90_ == 2)
       cv::rotate(cv_image_.image, cv_image_.image,1);
   else if (rotate90_ == 3)
       cv::rotate(cv_image_.image, cv_image_.image,2);
+  
   ros::Time retrieve_time = ros::Time::now();
 
   cv_image_.header.stamp = retrieve_time;
@@ -86,6 +98,12 @@ void SeekThermalRos::frameGrabTimerCallback(const ros::TimerEvent& event)
 
   img_pub_freq_->tick();
   diagnostic_updater_->update();
+  
+  if (cam_info_pub_.getNumSubscribers() > 0){
+    camera_info_.header.stamp = retrieve_time;
+    cam_info_pub_.publish(camera_info_);
+  }
+    
 }
 
 
