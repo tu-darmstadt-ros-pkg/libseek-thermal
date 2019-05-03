@@ -65,7 +65,7 @@ SeekThermalRos::SeekThermalRos(ros::NodeHandle &nh, ros::NodeHandle &pnh)
   cv_image_.header.frame_id = frame_id_;
 
   //Diagnostics
-  pnh.param<double>("diagnostics_freq_min", diagnostics_freq_min_, 7.0);
+  pnh.param<double>("diagnostics_freq_min", diagnostics_freq_min_, 6.0);
   pnh.param<double>("diagnostics_freq_max", diagnostics_freq_max_, 10.0);
 
   diagnostic_updater_.reset(new diagnostic_updater::Updater);
