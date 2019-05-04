@@ -52,6 +52,8 @@ public:
 
   void frameGrabTimerCallback(const ros::TimerEvent& event);
 
+  void tryOpenDeviceTillSuccess();
+
 protected:
 
   image_transport::Publisher image_pub_;

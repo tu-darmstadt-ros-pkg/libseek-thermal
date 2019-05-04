@@ -50,10 +50,7 @@ SeekThermalRos::SeekThermalRos(ros::NodeHandle &nh, ros::NodeHandle &pnh)
 
   seek_ = boost::make_shared<LibSeek::SeekThermal>(device_index_);
 
-  if (!seek_->open()){
-    ROS_ERROR("Failed to open device!");
-    //return;
-  }
+  this->tryOpenDeviceTillSuccess();
 
   frame_grab_timer_ = nh.createTimer(ros::Duration(0.1), &SeekThermalRos::frameGrabTimerCallback, this);
 
@@ -75,13 +72,25 @@ SeekThermalRos::SeekThermalRos(ros::NodeHandle &nh, ros::NodeHandle &pnh)
   img_pub_freq_.reset(new diagnostic_updater::HeaderlessTopicDiagnostic("Image Pub Frequency",
            *diagnostic_updater_,
            diagnostic_updater::FrequencyStatusParam(&diagnostics_freq_min_, &diagnostics_freq_max_, 0.0)));
+}
 
+void SeekThermalRos::tryOpenDeviceTillSuccess()
+{
+  while (!seek_->open()){
+    ROS_WARN("Failed to open Seek Thermal device, retrying in 5s!");
+    ros::Duration(5.0).sleep();
+  }
+  ROS_INFO("Succcesfully opened Seek Thermal device!");
 }
 
 void SeekThermalRos::frameGrabTimerCallback(const ros::TimerEvent& event)
 {
   // Read directly into cv::Mat in cv_image
-  seek_->read(cv_image_.image);
+  if (!seek_->read(cv_image_.image)){
+    seek_.reset();
+    seek_ = boost::make_shared<LibSeek::SeekThermal>(device_index_);
+    this->tryOpenDeviceTillSuccess();
+  }
   
   if (rotate90_ == 1)
     cv::rotate(cv_image_.image, cv_image_.image,0);
