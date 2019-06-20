@@ -37,7 +37,8 @@ SeekThermalRos::SeekThermalRos(ros::NodeHandle &nh, ros::NodeHandle &pnh)
   pnh.param("frame_id", frame_id_, std::string("seek_thermal_frame"));
   pnh.param("camera_info_url", camera_info_url_, std::string());
   pnh.param("camera_name", cam_name_, std::string("seek_thermal"));
-  
+  pnh.param("flat_field_calibration_path", flat_field_calibration_path_, std::string());
+
   camera_info_manager_ = boost::make_shared<camera_info_manager::CameraInfoManager>(nh, cam_name_, camera_info_url_);
   
   camera_info_ = camera_info_manager_->getCameraInfo();
@@ -48,7 +49,7 @@ SeekThermalRos::SeekThermalRos(ros::NodeHandle &nh, ros::NodeHandle &pnh)
   image_pub_ = it.advertise("camera/image", 1);  
   cam_info_pub_ = nh.advertise<sensor_msgs::CameraInfo>("camera/camera_info",5);
 
-  seek_ = boost::make_shared<LibSeek::SeekThermal>(device_index_);
+  seek_ = boost::make_shared<LibSeek::SeekThermal>(flat_field_calibration_path_, device_index_);
 
   this->tryOpenDeviceTillSuccess();
 
@@ -80,7 +81,7 @@ void SeekThermalRos::tryOpenDeviceTillSuccess()
     ROS_WARN("Failed to open Seek Thermal device, retrying in 5s!");
     ros::Duration(5.0).sleep();
   }
-  ROS_INFO("Succcesfully opened Seek Thermal device!");
+  ROS_INFO("Successfully opened Seek Thermal device!");
 }
 
 void SeekThermalRos::frameGrabTimerCallback(const ros::TimerEvent& event)

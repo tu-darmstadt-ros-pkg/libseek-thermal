@@ -79,8 +79,7 @@ protected:
   std::string frame_id_;
   std::string camera_info_url_;
   std::string cam_name_;
-
-
+  std::string flat_field_calibration_path_;
 };
 
 #endif
