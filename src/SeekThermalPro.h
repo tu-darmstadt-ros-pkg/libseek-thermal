@@ -30,6 +30,10 @@ public:
      */
     SeekThermalPro(std::string ffc_filename);
 
+    SeekThermalPro(int device_index);
+
+    SeekThermalPro(std::string ffc_filename, int device_index);
+
     virtual bool init_cam();
     virtual int frame_id();
     virtual int frame_counter();

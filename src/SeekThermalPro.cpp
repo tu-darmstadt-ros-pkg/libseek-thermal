@@ -13,8 +13,16 @@ SeekThermalPro::SeekThermalPro() :
     SeekThermalPro(std::string())
 { }
 
+SeekThermalPro::SeekThermalPro(int device_index) :
+    SeekThermalPro(std::string(), device_index)
+{ }
+
 SeekThermalPro::SeekThermalPro(std::string ffc_filename) :
-    SeekCam(0x289d, 0x0011, 0, m_buffer,
+    SeekThermalPro(ffc_filename, 0)
+{ }
+
+SeekThermalPro::SeekThermalPro(std::string ffc_filename, int device_index) :
+    SeekCam(0x289d, 0x0011, device_index, m_buffer,
             THERMAL_PRO_RAW_HEIGHT, THERMAL_PRO_RAW_WIDTH,
             cv::Rect(1, 4, THERMAL_PRO_WIDTH, THERMAL_PRO_HEIGHT), ffc_filename)
 { }

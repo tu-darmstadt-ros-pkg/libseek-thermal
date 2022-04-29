@@ -62,7 +62,7 @@ protected:
   cv_bridge::CvImage cv_image_;
   sensor_msgs::CameraInfo camera_info_;
 
-  boost::shared_ptr<LibSeek::SeekThermal> seek_;
+  boost::shared_ptr<LibSeek::SeekCam> seek_;
   boost::shared_ptr <camera_info_manager::CameraInfoManager> camera_info_manager_;
 
   ros::Timer frame_grab_timer_;
@@ -80,6 +80,7 @@ protected:
   std::string camera_info_url_;
   std::string cam_name_;
   std::string flat_field_calibration_path_;
+  bool is_seek_pro_;
 };
 
 #endif

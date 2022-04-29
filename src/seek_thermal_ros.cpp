@@ -38,6 +38,7 @@ SeekThermalRos::SeekThermalRos(ros::NodeHandle &nh, ros::NodeHandle &pnh)
   pnh.param("camera_info_url", camera_info_url_, std::string());
   pnh.param("camera_name", cam_name_, std::string("seek_thermal"));
   pnh.param("flat_field_calibration_path", flat_field_calibration_path_, std::string());
+  pnh.param("is_seek_pro", is_seek_pro_, false);
 
   camera_info_manager_ = boost::make_shared<camera_info_manager::CameraInfoManager>(nh, cam_name_, camera_info_url_);
   
@@ -49,7 +50,10 @@ SeekThermalRos::SeekThermalRos(ros::NodeHandle &nh, ros::NodeHandle &pnh)
   image_pub_ = it.advertise("camera/image", 1);  
   cam_info_pub_ = nh.advertise<sensor_msgs::CameraInfo>("camera/camera_info",5);
 
-  seek_ = boost::make_shared<LibSeek::SeekThermal>(flat_field_calibration_path_, device_index_);
+  if (is_seek_pro_)
+    seek_ = boost::make_shared<LibSeek::SeekThermalPro>(flat_field_calibration_path_, device_index_);
+  else
+    seek_ = boost::make_shared<LibSeek::SeekThermal>(flat_field_calibration_path_, device_index_);
 
   this->tryOpenDeviceTillSuccess();
 
@@ -89,7 +93,12 @@ void SeekThermalRos::frameGrabTimerCallback(const ros::TimerEvent& event)
   // Read directly into cv::Mat in cv_image
   if (!seek_->read(cv_image_.image)){
     seek_.reset();
-    seek_ = boost::make_shared<LibSeek::SeekThermal>(device_index_);
+
+    if (is_seek_pro_)
+      seek_ = boost::make_shared<LibSeek::SeekThermalPro>(flat_field_calibration_path_, device_index_);
+    else
+      seek_ = boost::make_shared<LibSeek::SeekThermal>(flat_field_calibration_path_, device_index_);
+
     this->tryOpenDeviceTillSuccess();
   }
   
