@@ -171,7 +171,7 @@ bool SeekDevice::open_device()
 
     if (!found) {
         libusb_free_device_list(devs, 1);
-        error("Error: Did not found device %04x:%04x\n", m_vendor_id, m_product_id);
+        error("Error: Did not find device %04x:%04x\n", m_vendor_id, m_product_id);
         return false;
     }
 

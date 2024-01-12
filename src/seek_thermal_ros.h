@@ -27,52 +27,47 @@
 //=================================================================================================
 
 
-#ifndef SEEK_THERMAL_ROS_H_____
-#define SEEK_THERMAL_ROS_H_____
-
 #include "seek.h"
 
-#include <ros/ros.h>
 #include <cv_bridge/cv_bridge.h>
-#include <image_transport/image_transport.h>
-#include <image_transport/publisher.h>
+#include <rclcpp/rclcpp.hpp>
+#include <sensor_msgs/msg/camera_info.hpp>
 
-#include <camera_info_manager/camera_info_manager.h>
+#include "image_transport/image_transport.hpp"
 
-#include <diagnostic_updater/diagnostic_updater.h>
-#include <diagnostic_updater/publisher.h>
-
-
+#include <diagnostic_updater/diagnostic_updater.hpp>
+#include <diagnostic_updater/publisher.hpp>
+#include <camera_info_manager/camera_info_manager.hpp>
+#include <boost/shared_ptr.hpp>
 
 class SeekThermalRos
 {
 public:
-
-  SeekThermalRos(ros::NodeHandle& nh, ros::NodeHandle& pnh);
-
-  void frameGrabTimerCallback(const ros::TimerEvent& event);
-
+  SeekThermalRos(const rclcpp::NodeOptions& node_options = rclcpp::NodeOptions());
+  void frameGrabTimerCallback();
   void tryOpenDeviceTillSuccess();
 
+  rclcpp::node_interfaces::NodeBaseInterface::SharedPtr get_node_base_interface() const;
+
 protected:
-
   image_transport::Publisher image_pub_;
-  ros::Publisher cam_info_pub_;
 
-  cv_bridge::CvImage cv_image_;
-  sensor_msgs::CameraInfo camera_info_;
+  rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr cam_info_pub_;
+  rclcpp::TimerBase::SharedPtr frame_grab_timer_;
 
-  boost::shared_ptr<LibSeek::SeekCam> seek_;
-  boost::shared_ptr <camera_info_manager::CameraInfoManager> camera_info_manager_;
+  cv_bridge::CvImage cv_image_;  
 
-  ros::Timer frame_grab_timer_;
+  sensor_msgs::msg::CameraInfo camera_info_;  
+
+  std::shared_ptr<LibSeek::SeekCam> seek_;
+  std::shared_ptr<camera_info_manager::CameraInfoManager> camera_info_manager_;
 
   // Diagnostics
-  boost::shared_ptr<diagnostic_updater::Updater> diagnostic_updater_;
-  boost::shared_ptr<diagnostic_updater::HeaderlessTopicDiagnostic> img_pub_freq_;
+  std::shared_ptr<diagnostic_updater::Updater> diagnostic_updater_;
+  std::shared_ptr<diagnostic_updater::HeaderlessTopicDiagnostic> img_pub_freq_;
   double diagnostics_freq_min_;
   double diagnostics_freq_max_;
-  
+
   // Params
   int rotate90_;
   int device_index_;
@@ -81,6 +76,7 @@ protected:
   std::string cam_name_;
   std::string flat_field_calibration_path_;
   bool is_seek_pro_;
-};
 
-#endif
+private:
+  std::shared_ptr<rclcpp::Node> node_;
+};

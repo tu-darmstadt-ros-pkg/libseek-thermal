@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-
-<launch>
-  <node pkg="libseek-thermal" type="seek_thermal_node" name="seekthermal" ns="libseek" output="screen" respawn="true">
-      <remap from="camera/image" to="/arm_thermal_cam/image_raw"/>
-  </node>
-</launch>
-

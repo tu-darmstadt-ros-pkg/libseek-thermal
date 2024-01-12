@@ -26,78 +26,86 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //=================================================================================================
 
+
 #include "seek_thermal_ros.h"
 
-SeekThermalRos::SeekThermalRos(ros::NodeHandle &nh, ros::NodeHandle &pnh)
-{
+SeekThermalRos::SeekThermalRos(const rclcpp::NodeOptions& node_options) : node_(std::make_shared<rclcpp::Node>("seek_thermal_ros", node_options))
+{        
+    RCLCPP_INFO(node_->get_logger(), "Seek Thermal ROS node started");
+    node_->declare_parameter("rotate90", 0);
+    node_->declare_parameter("device_index", 0);
+    node_->declare_parameter("frame_id", std::string("seek_thermal_frame"));
+    node_->declare_parameter("camera_info_url", std::string());
+    node_->declare_parameter("camera_name", std::string("seek_thermal"));
+    node_->declare_parameter("flat_field_calibration_path", std::string());
+    node_->declare_parameter("is_seek_pro", false);
+    node_->declare_parameter("diagnostics_freq_min", 5.0);
+    node_->declare_parameter("diagnostics_freq_max", 11.0);
 
-
-  pnh.param("rotate90", rotate90_, 0);
-  pnh.param("device_index", device_index_, 0);
-  pnh.param("frame_id", frame_id_, std::string("seek_thermal_frame"));
-  pnh.param("camera_info_url", camera_info_url_, std::string());
-  pnh.param("camera_name", cam_name_, std::string("seek_thermal"));
-  pnh.param("flat_field_calibration_path", flat_field_calibration_path_, std::string());
-  pnh.param("is_seek_pro", is_seek_pro_, false);
-
-  camera_info_manager_ = boost::make_shared<camera_info_manager::CameraInfoManager>(nh, cam_name_, camera_info_url_);
+    node_->get_parameter("rotate90", rotate90_);
+    node_->get_parameter("device_index", device_index_);
+    node_->get_parameter("frame_id", frame_id_);
+    node_->get_parameter("camera_info_url", camera_info_url_);
+    node_->get_parameter("camera_name", cam_name_);
+    node_->get_parameter("flat_field_calibration_path", flat_field_calibration_path_);
+    node_->get_parameter("is_seek_pro", is_seek_pro_);
+    node_->get_parameter("diagnostics_freq_min", diagnostics_freq_min_);
+    node_->get_parameter("diagnostics_freq_max", diagnostics_freq_max_);
   
-  camera_info_ = camera_info_manager_->getCameraInfo();
-  camera_info_.header.frame_id = frame_id_;
-  
-  image_transport::ImageTransport it(nh);
+    camera_info_manager_ = std::make_shared<camera_info_manager::CameraInfoManager>(node_.get(), cam_name_, camera_info_url_);
+    
+    camera_info_ = camera_info_manager_->getCameraInfo();
+    camera_info_.header.frame_id = frame_id_;
 
-  image_pub_ = it.advertise("camera/image", 1);  
-  cam_info_pub_ = nh.advertise<sensor_msgs::CameraInfo>("camera/camera_info",5);
+    image_transport::ImageTransport it(node_->shared_from_this());
 
-  if (is_seek_pro_)
-    seek_ = boost::make_shared<LibSeek::SeekThermalPro>(flat_field_calibration_path_, device_index_);
-  else
-    seek_ = boost::make_shared<LibSeek::SeekThermal>(flat_field_calibration_path_, device_index_);
+    image_pub_ = it.advertise("camera/image", 1);
+    cam_info_pub_ = node_->create_publisher<sensor_msgs::msg::CameraInfo>("camera/camera_info", 5);
 
-  this->tryOpenDeviceTillSuccess();
+    if (is_seek_pro_)
+      seek_ = std::make_shared<LibSeek::SeekThermalPro>(flat_field_calibration_path_, device_index_);
+    else
+      seek_ = std::make_shared<LibSeek::SeekThermal>(flat_field_calibration_path_, device_index_);
 
-  frame_grab_timer_ = nh.createTimer(ros::Duration(0.1), &SeekThermalRos::frameGrabTimerCallback, this);
+    this->tryOpenDeviceTillSuccess();
+    frame_grab_timer_ = node_->create_wall_timer(std::chrono::milliseconds(100), std::bind(&SeekThermalRos::frameGrabTimerCallback, this));
 
-  // Could also use camera pub, but maybe we want to not publish CameraInfo
-  // msgs all the time if we don't ever use them anyways
-  //cam_still_pub_ = it.advertiseCamera("camera/still/image", 1);
+    cv_image_.encoding = sensor_msgs::image_encodings::MONO16;
+    cv_image_.header.frame_id = frame_id_;
 
-  cv_image_.encoding = sensor_msgs::image_encodings::MONO16;
-  cv_image_.header.frame_id = frame_id_;
+    diagnostic_updater_.reset(new diagnostic_updater::Updater(node_.get())); // default period: 1s
+    diagnostic_updater_->setHardwareID(cam_name_);
 
-  //Diagnostics
-  pnh.param<double>("diagnostics_freq_min", diagnostics_freq_min_, 6.0);
-  pnh.param<double>("diagnostics_freq_max", diagnostics_freq_max_, 10.0);
-
-  diagnostic_updater_.reset(new diagnostic_updater::Updater);
-  //@TODO: Proper camera name
-  diagnostic_updater_->setHardwareID(pnh.getNamespace());
-
-  img_pub_freq_.reset(new diagnostic_updater::HeaderlessTopicDiagnostic("Image Pub Frequency",
+    img_pub_freq_.reset(new diagnostic_updater::HeaderlessTopicDiagnostic("Image Pub Frequency",
            *diagnostic_updater_,
            diagnostic_updater::FrequencyStatusParam(&diagnostics_freq_min_, &diagnostics_freq_max_, 0.0)));
 }
 
-void SeekThermalRos::tryOpenDeviceTillSuccess()
+// Required for non-node derived components
+rclcpp::node_interfaces::NodeBaseInterface::SharedPtr SeekThermalRos::get_node_base_interface() const
 {
-  while (!seek_->open()){
-    ROS_WARN("Failed to open Seek Thermal device, retrying in 5s!");
-    ros::Duration(5.0).sleep();
-  }
-  ROS_INFO("Successfully opened Seek Thermal device!");
+    return this->node_->get_node_base_interface();
 }
 
-void SeekThermalRos::frameGrabTimerCallback(const ros::TimerEvent& event)
+void SeekThermalRos::tryOpenDeviceTillSuccess()
 {
-  // Read directly into cv::Mat in cv_image
-  if (!seek_->read(cv_image_.image)){
-    seek_.reset();
+    while (!seek_->open()){
+      RCLCPP_WARN(node_->get_logger(), "Failed to open Seek Thermal device, retrying in 5s!");
+      rclcpp::sleep_for(std::chrono::seconds(5));
+    }
+    RCLCPP_INFO(node_->get_logger(), "Successfully opened Seek Thermal device!");
+}
+
+void SeekThermalRos::frameGrabTimerCallback()
+{
+    // Read directly into cv::Mat in cv_image
+    if (!seek_->read(cv_image_.image)){
+      seek_.reset();
 
     if (is_seek_pro_)
-      seek_ = boost::make_shared<LibSeek::SeekThermalPro>(flat_field_calibration_path_, device_index_);
+      seek_ = std::make_shared<LibSeek::SeekThermalPro>(flat_field_calibration_path_, device_index_);
     else
-      seek_ = boost::make_shared<LibSeek::SeekThermal>(flat_field_calibration_path_, device_index_);
+      seek_ = std::make_shared<LibSeek::SeekThermal>(flat_field_calibration_path_, device_index_);
 
     this->tryOpenDeviceTillSuccess();
   }
@@ -109,7 +117,7 @@ void SeekThermalRos::frameGrabTimerCallback(const ros::TimerEvent& event)
   else if (rotate90_ == 3)
       cv::rotate(cv_image_.image, cv_image_.image,2);
   
-  ros::Time retrieve_time = ros::Time::now();
+  rclcpp::Time retrieve_time = node_->now();  
 
   cv_image_.header.stamp = retrieve_time;
 
@@ -117,13 +125,13 @@ void SeekThermalRos::frameGrabTimerCallback(const ros::TimerEvent& event)
   image_pub_.publish(cv_image_.toImageMsg());
 
   img_pub_freq_->tick();
-  diagnostic_updater_->update();
+  // diagnostic_updater_->update();
   
-  if (cam_info_pub_.getNumSubscribers() > 0){
+  if (cam_info_pub_->get_subscription_count() > 0) {
     camera_info_.header.stamp = retrieve_time;
-    cam_info_pub_.publish(camera_info_);
+    cam_info_pub_->publish(camera_info_);
   }
-    
 }
 
-
+#include "rclcpp_components/register_node_macro.hpp"
+RCLCPP_COMPONENTS_REGISTER_NODE(SeekThermalRos)

@@ -3,26 +3,29 @@
   <name>libseek-thermal</name>
   <version>0.0.1</version>
   <description>seek_thermal</description>
-  <maintainer email="gabriel.huettenberger@gmail.com">Gabriel Huettenberger</maintainer>
+  <maintainer email="jonathan.lichtenfeld@gmail.com">Jonathan Lichtenfeld</maintainer>
 
   <license>BSD</license>
-
 
   <author>Gabriel Huettenberger</author>
 
   <!-- Dependencies which this package needs to build itself. -->
-  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <!-- Dependencies needed to compile this package. -->
-  <depend>camera_info_manager</depend>
-  <depend>cv_bridge</depend>
+  <!-- Dependencies needed to compile this package. -->  
+  <depend>rclcpp</depend>  
+  <build_depend>rclcpp_components</build_depend>
+  <depend>cv_bridge</depend>  
   <depend>diagnostic_updater</depend>
   <depend>dynamic_reconfigure</depend>
+  <depend>camera_info_manager</depend>
   <depend>image_transport</depend>
-  <depend>nodelet</depend>
+
+  <exec_depend>ros2launch</exec_depend>
   
   <export>
-    <nodelet plugin="${prefix}/nodelet_plugins.xml" />
+    <ament_export_plugin_macro file="${prefix}/nodelet_plugins.xml" />      
+    <build_type>ament_cmake</build_type>  
   </export>
 
 </package>
