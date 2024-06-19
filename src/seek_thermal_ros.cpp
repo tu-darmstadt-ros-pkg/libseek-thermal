@@ -29,7 +29,7 @@ SeekThermalRos::SeekThermalRos(const rclcpp::NodeOptions& node_options) : node_(
 
     image_transport::ImageTransport it(node_->shared_from_this());
 
-    image_pub_ = it.advertise("seekthermal/image", 1);
+    image_pub_ = it.advertise("camera/image", 1);
     // cam_info_pub_ = node_->create_publisher<sensor_msgs::msg::CameraInfo>("camera/camera_info", 5);
 
     if (is_seek_pro_)
